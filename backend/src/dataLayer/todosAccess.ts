@@ -1,15 +1,14 @@
 import * as AWS  from 'aws-sdk'
-import * as AWSXRay from 'aws-xray-sdk'
+//import * as AWSXRay from 'aws-xray-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { TodoItem } from '../models/TodoItem'
 import { TodoUpdate } from '../models/TodoUpdate';
 import { createLogger } from '../utils/logger'
+import { Types } from 'aws-sdk/clients/s3';
 
-const XAWS = AWSXRay.captureAWS(AWS)
+//const XAWS = AWSXRay.captureAWS(AWS)
 
-const s3 = new XAWS.S3({
-  signatureVersion: 'v4'
-})
+
 const logger = createLogger('TodosAccess')
 
 export class TodosAccess {
@@ -18,7 +17,9 @@ export class TodosAccess {
     private readonly docClient: DocumentClient = new AWS.DynamoDB.DocumentClient(),
     private readonly todosTable = process.env.TODOS_TABLE, 
     private readonly bucketName = process.env.IMAGES_S3_BUCKET,
-    private readonly urlExpiration = process.env.SIGNED_URL_EXPIRATION) {
+    private readonly urlExpiration = process.env.SIGNED_URL_EXPIRATION,
+    private readonly s3Client: Types = new AWS.S3({ signatureVersion: 'v4' })
+    ) {
   }
 
   async getTodosForUser(userId: string): Promise<TodoItem[]> {
@@ -111,11 +112,11 @@ export class TodosAccess {
   
   async createAttachmentPresignedUrl(imageId: string): Promise<String> {
     //try {
-      return s3.getSignedUrl('putObject', {
+      return this.s3Client.getSignedUrl('putObject', {
         Bucket: this.bucketName,
         Key: imageId,
         Expires: this.urlExpiration
-      })
+      }) as string
     // } catch (error) {
     //   logger.error('Error creating Presigned Url ', { error: error.message })
     // }

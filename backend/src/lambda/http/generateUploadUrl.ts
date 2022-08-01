@@ -5,22 +5,23 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult , APIGatewayProxyHandler} f
 
 import { createAttachmentPresignedUrl } from '../../businessLogic/todos'
 
-export const handler: APIGatewayProxyHandler=
-  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const todoId = event.pathParameters.todoId
-    // TODO: Return a presigned URL to upload a file for a TODO item with the provided id
-    const uploadUrl = await createAttachmentPresignedUrl(todoId);
+export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  // TODO: Return a presigned URL to upload a file for a TODO item with the provided id
+  console.log("Processing Event ", event);
+  const todoId = event.pathParameters.todoId;
 
-    return {
-      statusCode: 201,
+  const URL = await createAttachmentPresignedUrl(todoId);
+
+  return {
+      statusCode: 202,
       headers: {
-        'Access-Control-Allow-Origin': '*'
+          "Access-Control-Allow-Origin": "*",
       },
       body: JSON.stringify({
-        uploadUrl
+          uploadUrl: URL,
       })
-    }
-  }
+  };
+};
 
 
 // handler
